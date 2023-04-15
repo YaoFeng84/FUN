@@ -1,6 +1,7 @@
 #ifndef FUN_CodeUpdate_h
 #define FUN_CodeUpdate_h
 
+#include "TypeMro.h"
 #define CodeUpdate_CodeTypeNum          10   //代码类型表数
 
 typedef enum

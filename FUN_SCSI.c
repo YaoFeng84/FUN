@@ -24,7 +24,7 @@
           目前模拟U盘写速度:约16K字节/S
           目前模拟U盘读速度:约190K字节/S
 */
-#include "TypeMro.h"
+
 #include "FUN_SCSI.h"
 
 #define DeviceTypeCode        0x05 ///* 设备类型: 0x00表示移动设置(U盘)  0x05表示光驱 0x1f表示非移动设备(硬盘)目前不支持 */

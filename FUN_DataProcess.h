@@ -1,6 +1,8 @@
 #ifndef FUN_DataProcess_h
 #define FUN_DataProcess_h
 
+#include "TypeMro.h"
+
 extern s8 FUN_DataProcess_STRIsSame(u8 *dp1,u8 *dp2,u8 dl);
 
 extern u8 FUN_DataProcess_StrLen(u8 *sp);

@@ -23,7 +23,9 @@
 /*                                       特点说明：
           
 */
-#include "ProHeadFile.h"
+#include "FUN_String.h"
+#include "FUN_Match.h"
+#include "FUN1_SNMP.h"
 /********************************************************************************************************************************************
 *                                                                                                                                           *
 *               ----------------------------------以下模块间的对接函数区-----------------------------------------                             *
@@ -107,10 +109,10 @@ static OIDV OidOprList[SNMP_SignelMaxOIDNum];//OidValue操作表
 static u8 OidValueListOprIntex;//OidValue表操作索引号
 static s8 AckErrFlag;//应答错误标志
 
-static u8 *SaveDataP;//编码后数据存放空间首地址
-static u16 *SaveDataL;//编码后数据存放空间长度及返回值
-static u32 QuestNum;//请求操作码
-static s32 EncodeErrv;//编码错误状态
+//static u8 *SaveDataP;//编码后数据存放空间首地址
+//static u16 *SaveDataL;//编码后数据存放空间长度及返回值
+//static u32 QuestNum;//请求操作码
+//static s32 EncodeErrv;//编码错误状态
 static u8 *CommunityNameP;//社区名字符串指针
 /********************************************************************************************************************************************
 *                                                                                                                                           *
@@ -530,7 +532,7 @@ static s32 SNMP_Decode(u8 *dp,u16 dl,u8 *qcmd,u32 *qid,OIDV *op,u16 *processsize
      u8 datatype = 0,u8temp,u8oidintex;
      u8 cname[SNMP_MaxCommunitySize];
      s8 s8temp;
-     u16 datastartintex = 0,datasize = 0,u16temp,u16intex;
+     u16 datastartintex = 0,datasize = 0,u16intex;
      u16 oidl[SNMP_SignelMaxOIDNum],valuesl[SNMP_SignelMaxOIDNum];//长度值的暂时保存
      //u16 u16oidsl = *oidsl,u16valuel = *valuel;
      //

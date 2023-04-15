@@ -1,6 +1,8 @@
 #ifndef FUN_Memory_h
 #define FUN_Memory_h
 
+#include "TypeMro.h"
+
 typedef struct 
 {//MEMORY CONTROL BLOCK--(MCB 或 分区表)
     void *OSMemAddr;     //指向本分区表存储空间的起始指针

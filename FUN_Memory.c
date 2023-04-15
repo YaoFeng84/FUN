@@ -39,7 +39,7 @@
 
 
 */
-#include "TypeMro.h"
+
 #include "FUN_Memory.h"
 /********************************************************************************************************************************************
 *                                                                                                                                           *
@@ -320,6 +320,7 @@ s32 FUN_Memory_Create(void *addr,u32 nblks,u32 blksize,OS_MEM *pp)
      u32    i;
 
      pp = ((OS_MEM *)0);
+     pp = pp;
 //参数合法判断
      if(addr == (void *)0) 
      {//地址指针不可为空
@@ -397,6 +398,7 @@ s32 FUN_Memory_Get(OS_MEM *pmem,void *mp)
      void *pblk;
 
      mp = ((void *)0);
+     mp = mp;
      //输入参数合法判断
      if(pmem == (OS_MEM *)0) 
      {//分区表无效

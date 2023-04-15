@@ -1,6 +1,8 @@
 #ifndef FUN_PinLevelOPR_h
 #define FUN_PinLevelOPR_h
 
+#include "TypeMro.h"
+
 #define PLO_OFF     0    //¹Ø±Õ
 #define PLO_ON      1    //¿ªÆô
 

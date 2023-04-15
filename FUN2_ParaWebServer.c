@@ -23,7 +23,11 @@
 /*                                       特点说明：
 
 */
-#include "ProHeadFile.h"
+#include "FUN_Match.h"
+#include "FUN_String.h"
+#include "FUN_BufferOPR.h"
+#include "FUN1_HTTPServer.h"
+#include "FUN2_ParaWebServer.h"
 /********************************************************************************************************************************************
 *                                                                                                                                           *
 *               ----------------------------------以下模块间的对接函数区-----------------------------------------                             *
@@ -203,7 +207,6 @@ void FUN2_ParaWebServer_Process(ParaWebServerOPRType *tp)
      u8 *u8p;
      u16 rn,u16temp;
      u16 fi[10],fil = 10;
-     s16 s16temp;
      s32 s32temp;
      u32 u32intex,u32temp;
 

@@ -1,6 +1,8 @@
 #ifndef FUN_ParaOPR_h
 #define FUN_ParaOPR_h
 
+#include "TypeMro.h"
+
 #define ParaTableMaxSize      255//每张参数表最大字节数
 
 typedef struct

@@ -2,6 +2,8 @@
 #define FUN_SST25VF032_h
 
 //
+#include "TypeMro.h"
+
 typedef enum
 {
      ERASE_4K_TYPE  = 0x01,  
