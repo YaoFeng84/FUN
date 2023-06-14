@@ -23,10 +23,8 @@
 /*                                       特点说明：
 
 */
-#include "FUN_Match.h"
+
 #include "FUN_String.h"
-#include "FUN_BufferOPR.h"
-#include "FUN1_HTTPServer.h"
 #include "FUN2_ParaWebServer.h"
 /********************************************************************************************************************************************
 *                                                                                                                                           *
@@ -177,6 +175,7 @@ s8 FUN2_ParaWebServer_Config(ParaWebServerCNFType *tp)
      }
      tp->pwsotp->FailPageInfFunP = tp->FailPageInfFunP;
      tp->pwsotp->SuccessPageInfFunP = tp->SuccessPageInfFunP;
+     tp->pwsotp->PathErrInfFunP = tp->PathErrInfFunP;
      tp->pwsotp->WebStateMachine = WebServerStatu_QuestHeadDecode;//请求头解码
 
      return s8result;
@@ -207,6 +206,7 @@ void FUN2_ParaWebServer_Process(ParaWebServerOPRType *tp)
      u8 *u8p;
      u16 rn,u16temp;
      u16 fi[10],fil = 10;
+     s16 s16temp;
      s32 s32temp;
      u32 u32intex,u32temp;
 
@@ -251,6 +251,20 @@ void FUN2_ParaWebServer_Process(ParaWebServerOPRType *tp)
                                         tp->QuestProcessFailFlag = 0;
                                         tp->WebStateMachine = WebServerStatu_QuestUrlProcess;//请求Url处理
                                    }
+                                   else
+                                   {//没找到?----404
+                                        //PRO_Test_WriteDebugInf_Str("404么1？\r\n");
+                                        tp->QuestProcessFailFlag = 0;
+                                        tp->PathErrInfFunP(tp,"ERR",3);//路径错误404提示页面
+                                        tp->WebStateMachine = WebServerStatu_RemoveQuestData;//读取请求体数据不处理
+                                   }
+                              }
+                              else
+                              {//没找到?----404
+                                   //PRO_Test_WriteDebugInf_Str("404么2？\r\n");
+                                   tp->QuestProcessFailFlag = 0;
+                                   tp->PathErrInfFunP(tp,"ERR",3);//路径错误404提示页面
+                                   tp->WebStateMachine = WebServerStatu_RemoveQuestData;//读取请求体数据不处理
                               }
                          }
                          else if(tp->HttpOpr.Modth == Modth_POST)
@@ -259,6 +273,13 @@ void FUN2_ParaWebServer_Process(ParaWebServerOPRType *tp)
                               {//找到参数表
                                    tp->QuestProcessFailFlag = 0;
                                    tp->WebStateMachine = WebServerStatu_QuestDataProcess;//请求体数据处理
+                              }
+                              else
+                              {//没找到?----404
+                                   //PRO_Test_WriteDebugInf_Str("404么3？\r\n");
+                                   tp->QuestProcessFailFlag = 0;
+                                   tp->PathErrInfFunP(tp,"ERR",3);//路径错误404提示页面
+                                   tp->WebStateMachine = WebServerStatu_RemoveQuestData;//读取请求体数据不处理
                               }
                          }
                     }               

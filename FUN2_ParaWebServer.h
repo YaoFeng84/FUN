@@ -17,6 +17,8 @@ typedef struct
      void (*SuccessPageInfFunP)(void *,u8 *,u16);//成功页面信息回调函数(参数: ParaWebServerOPRType型指针,附带信息数据首地址，附带信息数据字节数)
      //失败页信息回调函数的附加信息数据(ERR：表示未知参数   其他：表示指定参数值越界了)
      void (*FailPageInfFunP)(void *,u8 *,u16);//失败页面信息回调函数(参数: ParaWebServerOPRType型指针 ,附带信息数据首地址，附带信息数据字节数)
+     //路径错误(404页)信息回调函数
+     void (*PathErrInfFunP)(void *,u8 *,u16);//路径错误(404页面)信息回调函数(参数: ParaWebServerOPRType型指针 ,附带信息数据首地址，附带信息数据字节数)
 //---------- 以下是运行时，根据情况在回调时进行修改 ----------
      s32(*GetDataFunP)(u8 *,u16,u8);//读数据到响应体的函数指针(参数:存放空间首地址,希望读取字节数,读取模式(0:从头读 非0:继续读))(返回值：小于-1:出错   -1:等待数据   0:无数据(结束)   大于0:具体读到字节数)
      //参数设置回调函数数据格式(键名=键值)
@@ -44,6 +46,7 @@ typedef struct
      ParaWebServerOPRType *pwsotp;//操作对象指针
      void (*SuccessPageInfFunP)(void *,u8 *,u16);//成功页面信息回调函数
      void (*FailPageInfFunP)(void *,u8 *,u16);//失败页面信息回调函数
+     void (*PathErrInfFunP)(void *,u8 *,u16);//路径错误(404页面)信息回调函数
 }ParaWebServerCNFType;//参数Web服务模块配置类型
 
 extern s8 FUN2_ParaWebServer_Config(ParaWebServerCNFType *tp);
