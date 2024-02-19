@@ -19,6 +19,11 @@
  * 修改作者：YJX
  * 版本号：V2.1
  ***********************************************
+ * 修改内容：MoveRP 和 GetUseSize 更新
+ * 修改日期：2023-10-27
+ * 修改作者：YJX
+ * 版本号：V2.2
+ ***********************************************
 */
 /********************************************************************************************************************************************
 *                                                                                                                                           *
@@ -89,7 +94,9 @@ FUN_BufferOPR_ReadData(&ReceBufferControl,0,rdp,rdl);
 
 */
 
-#include "FUN_BufferOPR.h"
+//#include "FUN_BufferOPR.h"
+#include "hc32_ddl.h"
+#include "ProHeadFile.h"
 /********************************************************************************************************************************************
 *                                                                                                                                           *
 *               ----------------------------------以下模块间的对接函数区-----------------------------------------                             *
@@ -379,31 +386,38 @@ u32 FUN_BufferOPR_ReadData(BufferOPRType *Bot,u8 rm,u8 *rdp,u32 rdl)
 作   者:YJX
 版   本:V1.0
 时   间:2018-10-17   
+-------------------------------------------------
+作   者:YJX
+版   本:V1.1 : 更新计算过程，读写可能被修改。改为计算前统一读取再计算
+时   间:2023-10-27   
 -------------------------------------------------*/
 u32 FUN_BufferOPR_MoveRP(BufferOPRType *Bot,u32 mbn)
 {
      u32 usesize;//总的可以移动字节数
      u32 forwordbyte;//正向移动字节数
      
+     u32 bwp,brp;
+     bwp = (u32)(Bot->BufferWP);//暂存，防止在运算过程产生变化
+     brp = (u32)(Bot->BufferRP);//暂存，防止在运算过程产生变化
      
      //MutexOpen;//互斥开启 关中断
-     if(Bot->BufferWP > Bot->BufferRP)
+     if(bwp > brp)
      {
-          usesize = (Bot->BufferWP - Bot->BufferRP);
+          usesize = (bwp - brp);
           if(mbn > usesize)
           {
                mbn = usesize;
           }
           Bot->BufferRP += mbn;//移动读指针
      }
-     else if(Bot->BufferWP < Bot->BufferRP)
+     else if(bwp < brp)
      {
-          usesize = (Bot->BufferLen - (Bot->BufferRP - Bot->BufferWP));
+          usesize = (Bot->BufferLen - (brp - bwp));
           if(mbn > usesize)
           {
                mbn = usesize;
           }
-          forwordbyte = (Bot->BufferEndP - Bot->BufferRP);//当前读指针到缓存结尾可移的字节数
+          forwordbyte = (Bot->BufferEndP - (u8 *)brp);//当前读指针到缓存结尾可移的字节数
           if(mbn <= forwordbyte)
           {//当前读指针 到 缓存结尾 的字节数 大等于 要移动的字节数
                Bot->BufferRP += mbn;//移动读指针
@@ -432,6 +446,57 @@ u32 FUN_BufferOPR_MoveRP(BufferOPRType *Bot,u32 mbn)
      //MutexClose;//互斥关闭 开中断
      return mbn;
 }
+
+//{
+//     u32 usesize;//总的可以移动字节数
+//     u32 forwordbyte;//正向移动字节数
+//     
+//     //MutexOpen;//互斥开启 关中断
+//     if(Bot->BufferWP > Bot->BufferRP)
+//     {
+//          usesize = (Bot->BufferWP - Bot->BufferRP);
+//          if(mbn > usesize)
+//          {
+//               mbn = usesize;
+//          }
+//          Bot->BufferRP += mbn;//移动读指针
+//     }
+//     else if(Bot->BufferWP < Bot->BufferRP)
+//     {
+//          usesize = (Bot->BufferLen - (Bot->BufferRP - Bot->BufferWP));
+//          if(mbn > usesize)
+//          {
+//               mbn = usesize;
+//          }
+//          forwordbyte = (Bot->BufferEndP - Bot->BufferRP);//当前读指针到缓存结尾可移的字节数
+//          if(mbn <= forwordbyte)
+//          {//当前读指针 到 缓存结尾 的字节数 大等于 要移动的字节数
+//               Bot->BufferRP += mbn;//移动读指针
+//          }
+//          else
+//          {
+//               Bot->BufferRP = (Bot->BufferStartP + mbn - forwordbyte - 1);//移动读指针
+//          }
+//     }
+//     else
+//     {
+//          usesize = 0;
+//          mbn = 0;
+//     }
+//#ifdef BufferFlowControl 
+//     {
+//          //以下是流控处理
+//          u32 freesize;
+//          freesize = (Bot->BufferLen - FUN_BufferOPR_GetUseSize(Bot) - 1);//获取空闲空间(减1是为了避免规则【3】的出现)
+//          if(freesize > Bot->MaxStartReceSize)
+//          {//空闲字节 大于 最大开始接收字节，则开始接收
+//               Bot->StartReceF();//执行开始接收回调函数
+//          }
+//     }
+//#endif     
+//     //MutexClose;//互斥关闭 开中断
+//     return mbn;
+//}
 
 /*-------------------------------------------------
 函数名: FUN_BufferOPR_SetWP
@@ -509,20 +574,29 @@ u32 FUN_BufferOPR_GetFreeSize(BufferOPRType *Bot)
 示   例:
 作   者:YJX
 版   本:V1.0
-时   间:2018-10-17   
+时   间:2018-10-17      
+-------------------------------------------------
+作   者:YJX
+版   本:V1.1 : 更新计算过程，读写可能被修改。改为计算前统一读取再计算
+时   间:2023-10-27  
 -------------------------------------------------*/
 u32 FUN_BufferOPR_GetUseSize(BufferOPRType *Bot)
 {
      u32 usesize;
+
+     u32 bwp,brp;
+     bwp = (u32)(Bot->BufferWP);//暂存，防止在运算过程产生变化
+     brp = (u32)(Bot->BufferRP);//暂存，防止在运算过程产生变化
+     
      //MutexOpen;//互斥开启 关中断
-     if(Bot->BufferWP > Bot->BufferRP)
+     if(bwp > brp)
      {
-          usesize = (Bot->BufferWP - Bot->BufferRP);
+          usesize = (bwp - brp);
 
      }
-     else if(Bot->BufferWP < Bot->BufferRP)
+     else if(bwp < brp)
      {
-          usesize = (Bot->BufferLen - (Bot->BufferRP - Bot->BufferWP));
+          usesize = (Bot->BufferLen - (brp - bwp));
 
      }
      else
@@ -532,6 +606,27 @@ u32 FUN_BufferOPR_GetUseSize(BufferOPRType *Bot)
      //MutexClose;//互斥关闭 开中断
      return usesize;
 }
+
+//{
+//     u32 usesize;
+//     //MutexOpen;//互斥开启 关中断
+//     if(Bot->BufferWP > Bot->BufferRP)
+//     {
+//          usesize = (Bot->BufferWP - Bot->BufferRP);
+
+//     }
+//     else if(Bot->BufferWP < Bot->BufferRP)
+//     {
+//          usesize = (Bot->BufferLen - (Bot->BufferRP - Bot->BufferWP));
+
+//     }
+//     else
+//     {
+//          usesize = 0;
+//     }
+//     //MutexClose;//互斥关闭 开中断
+//     return usesize;
+//}
 
 /********************************************************************************************************************************************
 *                                                                                                                                           *

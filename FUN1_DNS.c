@@ -21,10 +21,9 @@
 *                                                                                                                                           *
 ********************************************************************************************************************************************/
 /*                                       特点说明：
-          DNS服务器，仅支持1个问题，响应1个答案，使用IPV4的服务
+          DNS服务器，仅支持1个问题，响应1个答案，查询IPV4类型的服务
 */
 #include "FUN_String.h"
-// #include "FUN_Match.h"
 #include "FUN1_DNS.h"
 /********************************************************************************************************************************************
 *                                                                                                                                           *
@@ -32,8 +31,9 @@
 *                                                                                                                                           *
 ********************************************************************************************************************************************/
 // #define SNMP_S32ToStr(N,P,L)                 FUN_String_S32ToStr(N,P,L)
-// #define SNMP_StrLen(SP)                      FUN_String_StrLen(SP)
+#define DNS_StrLen(SP)                      FUN_String_StrLen(SP)
 #define DNS_StrIsRame(P1,P2)                FUN_String_STRIsSame(P1,P2)
+#define DNS_Split3(DP,FP,IP,IL)             FUN_String_Split3(DP,FP,IP,IL)
 // #define SNMP_StrToS32(SP,NP)                 FUN_String_StrToS32(SP,NP)
 // //
 // #define SNMP_MIBConfig(T)                    FUN_Match_Config(T)
@@ -51,12 +51,6 @@
 *                                                                                                                                           *
 ********************************************************************************************************************************************/
 
-// //
-// #define SNMP_VersionNum                 1    //SNMP版本号(1:V1)
-// //解码错误值宏定义
-// #define SNMP_DecodeErr_DataType         -40  //数据类型异常
-// #define SNMP_DecodeErr_DataSizeMax      -41  //数据量过大
-// #define SNMP_DecodeErr_DataSizeLess     -42  //数据量不够
 /********************************************************************************************************************************************
 *                                                                                                                                           *
 *               ----------------------------------以下是模块内的变量类型定义区------------------------------------                            *
@@ -75,15 +69,6 @@ typedef struct
      u16 NType;          //域名类型
      u16 NClass;         //域名种类
 }DNSHeaderType;
-
-// typedef struct
-// {
-//      u8 datatype;//数据类型,用于保存响应的数据类型
-//      u8 oid[SNMP_MaxOIDSize];
-//      u16 oidl; //oid缓存字节数，处理后返回有效字节数，不含\0
-//      u8 value[SNMP_MaxValueSize];
-//      u16 valuel;//value缓存字节数，处理后返回有效字节数，不含\0
-// }OIDV;
 
 /********************************************************************************************************************************************
 *                                                                                                                                           *
@@ -119,9 +104,49 @@ typedef struct
 -------------------------------------------------*/
 s8 FUN1_DNS_Config(DNSServerCNFType *tp)
 {
-     tp->op->dnsmp = tp->dnsmp;
+     s16 s16temp;
+     u32 u32temp;
+     u8 *strp;
      //此处对输入的地址映射表合法性进行判断
-     //检查域名段数 及 总长度。
+     //检查域名段数 及 总长度。和 表元素个数
+     for(u32temp = 0;u32temp < MaxDonameNum;u32temp++)
+     {
+          strp = tp->dnsmp[u32temp].dnp;//获取待判断域名串指针
+          if(strp)
+          {//
+               if(DNS_StrLen(strp) >= MaxDonameSize)
+               {//长度越界
+                    return -1;
+               }
+               s16temp = DNS_Split3(strp,".",(u16 *)0,0);
+               if(s16temp == 0)
+               {//域名未找到.   ----   非法
+                    return -2;
+               }
+               if(s16temp < 0)
+               {
+                    s16temp = (0 - s16temp);//转为正数
+               }
+               if(s16temp > MaxDonameSecNum)
+               {//域名分段个数越界
+                    return -3;
+               }
+          }
+          else
+          {//表结束
+               break;//退出循环
+          }
+     }
+
+     if(u32temp >= MaxDonameNum)
+     {//映射表元素个数越界了
+          return -4;
+     }
+
+     //映射表合法
+     tp->op->dnsmp = tp->dnsmp;
+     tp->op->EnableEndIP = tp->EnableEndIP;
+     tp->op->DonameBackFun = tp->DonameBackFun;
 
      return 0;
 }
@@ -238,12 +263,24 @@ s8 FUN1_DNS_Process(DNSServerOPRType *bp,u8 *dp,u16 dl,u16 *pn,u8 *rp,u16 *rl)
           return -4;
      }
 
+     if((u32)(bp->DonameBackFun) != 0)
+     {//有域名回调函数
+          bp->DonameBackFun(doname);//执行回调函数
+     }
+
      //查询IP，并组织响应数据
      for(u16ipintex = 0;u16ipintex < U16MAZVALUE;u16ipintex++)
      {
           if(bp->dnsmp[u16ipintex].dnp == (u8 *)0)
           {//都没匹配到，则统一返回默认IP串
-               break;
+               if(bp->EnableEndIP)
+               {//使能结束IP
+                    break;
+               }
+               else
+               {//不响应，直接退出
+                    return -5;
+               }
           }
           else if(DNS_StrIsRame(bp->dnsmp[u16ipintex].dnp,doname) == 0)
           {//匹配到域名
@@ -255,7 +292,7 @@ s8 FUN1_DNS_Process(DNSServerOPRType *bp,u8 *dp,u16 dl,u16 *pn,u8 *rp,u16 *rl)
      //此处只返回1个IP地址，故比原数据多出了16字节的数据     
      if(rmaxsize < (*pn + 16))
      {//应答存放空间不够
-          return -5;
+          return -6;
      }
 
      //组织应答数据----原数据信息

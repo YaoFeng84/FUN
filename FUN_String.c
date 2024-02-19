@@ -144,7 +144,7 @@ s8 FUN_String_STRIsSame2(u8 *dp1,u8 *dp2,u16 dl)
        u8 il:分割点索引号存放空间长度
 返回值:
        实际有效的分割点数
-       如果小于0，则表示存放分割点的空间不够，转为正数后为已分割的点数
+       如果小于0，则表示存放分割点的空间不够，转为正数后为【已】分割的点数
 注   意:
        ip数组中存放分割点的索引号，(从0计)
 示   例:
@@ -261,6 +261,77 @@ s16 FUN_String_Split2(u8 *dp,u16 dl,u8 *fp,u8 fl,u16 *ip,u8 il)
           }
      }
 
+     return s16ipintex;
+}
+
+/*-------------------------------------------------
+函数名:FUN_String_Split3
+功   能: 字符串分割 函数 
+参   数:
+       u8 *dp:待分割字符串首地址(以\0结尾)
+       u8 *fp:分割字符串首地址(以\0结尾)
+       u16 *ip:分割点索引号存放首地址
+       u8 il:分割点索引号存放空间长度
+返回值:
+       实际有效的分割点数
+       如果小于0，则表示存放分割点的空间不够，转为正数后为【所有的】分割的点数
+注   意:
+       ip数组中存放分割点的索引号，(从0计)
+示   例:
+          如 dp = "12345674598458"
+             fp = "45"
+          
+          当ip数组个数大等于3时
+          则 函数返回3，ip = {3,7,11}
+
+          当ip数据个数小于3时（如为2时）
+          则 函数返回-3，ip = {3,7}
+作   者:YJX
+版   本:V1.0
+时   间:2023-06-15
+-------------------------------------------------*/
+s16 FUN_String_Split3(u8 *dp,u8 *fp,u16 *ip,u8 il)
+{
+     u8 u8intex,errf;
+     u16 u16intex;
+     s16 s16ipintex;//保存索引号
+
+     errf = 0;//未出错
+     u8intex = 0;//
+     s16ipintex = 0;//保存断点索引号
+     for(u16intex = 0;u16intex < U16MAZVALUE;u16intex++)
+     {
+          if(dp[u16intex] == '\0')
+          {
+               break;//退出循环
+          }
+          else if(dp[u16intex] == fp[u8intex])
+          {
+               u8intex++;
+               if(fp[u8intex] == '\0')
+               {                    
+                    if(s16ipintex < il)
+                    {//空间够放
+                         ip[s16ipintex++] = (u16intex + 1 - u8intex); 
+                    }
+                    else
+                    {//空间不够放
+                         errf = 1;//出错了
+                         s16ipintex++;//仍然进行统计
+                    }
+                    u8intex = 0;
+               }
+          }
+          else
+          {
+               u8intex = 0;
+          }
+     }
+
+     if(errf)
+     {//出错了
+          s16ipintex = (0 - s16ipintex);//换为负的
+     }
      return s16ipintex;
 }
 

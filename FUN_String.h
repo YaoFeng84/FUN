@@ -8,6 +8,7 @@ extern s8 FUN_String_STRIsSame2(u8 *dp1,u8 *dp2,u16 dl);
 
 extern s16 FUN_String_Split(u8 *dp,u8 *fp,u16 *ip,u8 il);
 extern s16 FUN_String_Split2(u8 *dp,u16 dl,u8 *fp,u8 fl,u16 *ip,u8 il);
+extern s16 FUN_String_Split3(u8 *dp,u8 *fp,u16 *ip,u8 il);
 
 extern u8 *FUN_String_Ltrim(u8 *sp);
 
