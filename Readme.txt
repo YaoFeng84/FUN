@@ -10,3 +10,6 @@ V2:
 FUN2_ParaWebServer中增加关于路径不存在的404页面
 20230614
 
+V3:
+修复BufferOPR和String模块的部分Bug
+
